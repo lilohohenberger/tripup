@@ -68,7 +68,7 @@ export default function TripHome({
     <div className="h-full relative">
       <div className="h-full overflow-y-auto overscroll-contain">
         {/* Content: 8px gutter, 4px stack gap (Figma "Content") */}
-        <div className="flex flex-col gap-1 px-2 pt-[env(safe-area-inset-top)] pb-20">
+        <div className="flex flex-col gap-1 px-2 pt-[env(safe-area-inset-top)] pb-32">
           {/* Hero: cover photo, title card overlaps it by 82.5px; morphs in from the trips-home card */}
           <div className="flex flex-col w-full">
             <motion.div
@@ -135,7 +135,7 @@ export default function TripHome({
               </div>
               <div className="flex items-center w-full">
                 <button
-                  onClick={onOpenVote}
+                  onClick={showUndesignedToast}
                   className="bg-surface border border-black text-ink rounded-pill h-10 px-4 py-2 flex-1 flex items-center justify-center text-[16px] leading-normal cursor-pointer active:bg-ink active:text-white transition-colors"
                 >
                   View results

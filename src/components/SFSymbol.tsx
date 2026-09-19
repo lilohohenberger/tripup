@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { LIGHT, REGULAR, THIN, SYMBOL_UPM } from "./sfSymbolPaths";
+import { LIGHT, MEDIUM, REGULAR, THIN, SYMBOL_UPM } from "./sfSymbolPaths";
 
 /**
  * SF Symbols from the Figma designs, rendered as inline SVG outlines
@@ -18,8 +18,10 @@ type Props = {
 export default function SFSymbol({ name, className, style }: Props) {
   const thin = className?.includes("font-thin") ?? false;
   const light = className?.includes("font-light") ?? false;
+  const medium = className?.includes("font-medium") ?? false;
   const glyph =
     (thin ? (THIN as Partial<typeof REGULAR>)[name] : undefined) ??
+    (medium ? (MEDIUM as Partial<typeof REGULAR>)[name] : undefined) ??
     (light || thin ? LIGHT : REGULAR)[name];
   const [x0, y0, x1, y1] = glyph.box;
   const w = x1 - x0;

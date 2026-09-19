@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import SFSymbol from "../components/SFSymbol";
 import IconButton from "../components/IconButton";
-import PillInput from "../components/PillInput";
 import { showUndesignedToast } from "../components/Toast";
 import receipt from "../assets/receipt.png";
 import { expenseMembers, initialExpenseItems, type ExpenseItem } from "../data/expense";
@@ -15,8 +14,6 @@ type Props = {
 
 type SplitMode = "equal" | "custom" | "parts";
 
-let itemSeq = 100;
-
 /**
  * Log-expense screen (Figma "Log expense"): scanned receipt hero with title
  * card, amount + paid-by/when fields, split segmented control, per-item
@@ -28,7 +25,6 @@ export default function LogExpense({ onClose, onSave }: Props) {
   const [swiped, setSwiped] = useState<string | null>(null);
   const [split, setSplit] = useState<SplitMode>("equal");
   const [amount, setAmount] = useState("123,50");
-  const [draft, setDraft] = useState("");
   const dragging = useRef(false);
 
   function removeItem(id: string) {
@@ -52,13 +48,6 @@ export default function LogExpense({ onClose, onSave }: Props) {
     );
     // an uneven share is a custom split
     setSplit("custom");
-  }
-
-  function addItem() {
-    const trimmed = draft.trim();
-    if (!trimmed) return;
-    setItems((prev) => [...prev, { id: `item-${itemSeq++}`, name: trimmed, price: "0,00", excluded: [] }]);
-    setDraft("");
   }
 
   function shareLabel(item: ExpenseItem) {
@@ -103,10 +92,10 @@ export default function LogExpense({ onClose, onSave }: Props) {
               className="bg-surface border border-muted rounded-pill h-[62px] px-4 py-2 flex items-center shrink-0 cursor-pointer text-[24px] leading-normal"
             >
               <span className="text-ink">
-                <SFSymbol name="euroSign" />{" "}
+                <SFSymbol name="euroSign" className="font-medium" />{" "}
               </span>
               <span className="text-muted">
-                <SFSymbol name="chevronUpDown" />
+                <SFSymbol name="chevronUpDown" className="font-light" />
               </span>
             </button>
             <div className="border border-muted rounded-pill h-[62px] px-4 py-2 flex items-center flex-1 min-w-0">
@@ -129,9 +118,9 @@ export default function LogExpense({ onClose, onSave }: Props) {
                   onClick={showUndesignedToast}
                   className="bg-surface border border-muted rounded-pill h-[62px] px-4 py-2 flex items-center cursor-pointer text-[24px] leading-normal whitespace-nowrap"
                 >
-                  <span className="text-ink">Ari (you) </span>
+                  <span className="text-ink font-medium">Ari (you) </span>
                   <span className="text-muted">
-                    <SFSymbol name="chevronUpDown" />
+                    <SFSymbol name="chevronUpDown" className="font-light" />
                   </span>
                 </button>
               </div>
@@ -139,7 +128,7 @@ export default function LogExpense({ onClose, onSave }: Props) {
                 <p className="pl-4 text-[16px] leading-normal text-white">When?</p>
                 <button
                   onClick={showUndesignedToast}
-                  className="bg-surface border border-muted rounded-pill h-[62px] px-4 py-2 flex items-center cursor-pointer text-[24px] leading-normal text-ink"
+                  className="bg-surface border border-muted rounded-pill h-[62px] px-4 py-2 flex items-center cursor-pointer text-[24px] font-medium leading-normal text-ink"
                 >
                   27.06.2026
                 </button>
@@ -318,15 +307,16 @@ export default function LogExpense({ onClose, onSave }: Props) {
                 );
               })}
               </AnimatePresence>
-              {/* Add item row (Figma "Input field") */}
-              <PillInput
-                value={draft}
-                onChange={setDraft}
-                onSubmit={addItem}
-                commitOnBlur
-                placeholder="Add item"
-                icon="pencil"
-              />
+              {/* Add item row (Figma "Input field") — not part of the journey */}
+              <button
+                onClick={showUndesignedToast}
+                className="border border-muted rounded-pill h-[62px] px-4 py-2 flex items-center gap-2 w-full cursor-pointer text-left"
+              >
+                <SFSymbol name="pencil" className="text-[24px] leading-normal text-muted" />
+                <span className="flex-1 min-w-0 truncate text-[24px] leading-normal text-muted">
+                  Add item
+                </span>
+              </button>
             </div>
           </div>
 
