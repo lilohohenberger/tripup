@@ -74,8 +74,8 @@ export default function LogExpense({ onClose, onSave }: Props) {
       exit={{ y: "100%", transition: exitTransition }}
     >
       {/* Header bar floats over the receipt photo (Figma: content starts at the status bar) */}
-      <div className="absolute top-[env(safe-area-inset-top)] inset-x-0 z-10 flex items-center px-6 py-4">
-        <IconButton symbol="chevronBackward" label="Back" onClick={onClose} />
+      <div className="absolute top-[env(safe-area-inset-top)] inset-x-0 z-10 flex items-center px-6 py-4 pointer-events-none">
+        <IconButton symbol="chevronBackward" label="Back" onClick={onClose} className="pointer-events-auto" />
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -270,14 +270,15 @@ export default function LogExpense({ onClose, onSave }: Props) {
                           className="w-full overflow-hidden"
                         >
                           {/* White detail card: 4px inset, radius 36, 1px ink border (updated component) */}
-                          <div className="bg-surface border border-ink rounded-media px-6 py-4 flex flex-col gap-2 w-[calc(100%-8px)] mx-1 mb-1">
+                          <div className="bg-surface border border-ink rounded-media pl-6 pr-4 py-4 flex flex-col gap-4 w-[calc(100%-8px)] mx-1 mb-1">
                             <div className="flex flex-col gap-0.5 text-ink">
                               <p className="text-[16px] font-medium leading-normal">who shared this?</p>
                               <p className="text-[12px] leading-normal">
                                 Tap to add- or remove people from the list.
                               </p>
                             </div>
-                            <div className="flex gap-2 items-start">
+                            {/* member list scrolls horizontally (Figma open state) */}
+                            <div className="flex gap-2 items-start w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                               {expenseMembers.map((m) => {
                                 const isExcluded = item.excluded.includes(m.id);
                                 return (
@@ -286,24 +287,24 @@ export default function LogExpense({ onClose, onSave }: Props) {
                                     onClick={() => toggleMember(item.id, m.id)}
                                     aria-pressed={!isExcluded}
                                     aria-label={`${m.name} ${isExcluded ? "excluded" : "included"}`}
-                                    className="flex flex-col gap-2 items-center cursor-pointer"
+                                    className="flex flex-col gap-1 items-center cursor-pointer shrink-0"
                                   >
                                     {isExcluded ? (
-                                      <span className="size-10 rounded-full border border-dashed border-ink flex items-center justify-center text-ink text-[14px] font-bold">
+                                      <span className="size-12 rounded-full border border-dashed border-ink flex items-center justify-center text-ink text-[14px] font-bold">
                                         ✕
                                       </span>
                                     ) : m.avatar ? (
                                       <img
                                         src={m.avatar}
                                         alt=""
-                                        className="size-10 rounded-full object-cover border border-ink"
+                                        className="size-12 rounded-full object-cover border border-ink"
                                       />
                                     ) : (
-                                      <span className="size-10 rounded-full bg-peach border border-ink text-glass-label text-[24px] font-medium flex items-center justify-center">
+                                      <span className="size-12 rounded-full bg-peach border border-ink text-glass-label text-[24px] font-medium flex items-center justify-center">
                                         {m.name[0]}
                                       </span>
                                     )}
-                                    <span className="text-[12px] leading-normal text-ink">{m.name}</span>
+                                    <span className="text-[16px] leading-normal text-ink">{m.name}</span>
                                   </button>
                                 );
                               })}

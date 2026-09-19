@@ -15,15 +15,15 @@ type Props = {
 
 const items: { key: string; symbol: SymbolName; label: string }[] = [
   { key: "idea", symbol: "lightbulb", label: "Add Idea" },
-  { key: "expense", symbol: "euroBanknote", label: "Add Expense" },
+  { key: "expense", symbol: "euroRotate", label: "Log Expense" },
   { key: "poll", symbol: "chartBar", label: "Ask the group" },
   { key: "plan", symbol: "calendar", label: "Add to itinerary" },
 ];
 
 /**
- * Create menu (Figma): white 62px pill rows over a 60% black overlay,
- * 24 Regular labels with SF Pro Light glyphs; the menu bar stays visible
- * with an xmark close button.
+ * Create menu (Figma): ink 62px pill rows with 1px white border over a 60%
+ * black overlay, 24 Regular white labels with SF Pro Light glyphs; the menu
+ * bar stays visible with an xmark close button. Floats 8px above the plus/x.
  */
 export default function FabMenu({ open, activeTab, onClose, onAskGroup, onAddToItinerary, onAddExpense }: Props) {
   function handle(key: string) {
@@ -43,12 +43,12 @@ export default function FabMenu({ open, activeTab, onClose, onAskGroup, onAddToI
             exit={{ opacity: 0, transition: exitTransition }}
             onClick={onClose}
           />
-          <div className="absolute inset-x-[9px] bottom-[86px] z-30 flex flex-col gap-1 items-center">
+          <div className="absolute inset-x-[9px] bottom-[calc(max(16px,env(safe-area-inset-bottom))+72px)] z-30 flex flex-col gap-1 items-center">
             {items.map((item) => (
               <motion.button
                 key={item.key}
                 onClick={() => handle(item.key)}
-                className="bg-surface border border-ink text-ink rounded-pill h-[62px] px-4 py-2 w-full flex items-center justify-center text-[24px] leading-normal cursor-pointer active:bg-ink active:text-white transition-colors"
+                className="bg-ink border border-white text-white rounded-pill h-[62px] px-4 py-2 w-full flex items-center justify-center text-[24px] leading-normal cursor-pointer active:bg-surface active:text-ink transition-colors"
                 initial={{ y: 24, opacity: 0 }}
                 animate={{ y: 0, opacity: 1, transition: enterTransition }}
                 exit={{ y: 24, opacity: 0, transition: exitTransition }}

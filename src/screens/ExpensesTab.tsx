@@ -34,7 +34,7 @@ export default function ExpensesTab({ onHome, onLogExpense, onOpenFab }: Props) 
           <IconButton symbol="chevronBackward" label="Back" onClick={onHome} />
           <button
             onClick={onLogExpense}
-            className="bg-peach border border-black rounded-pill px-4 py-2 text-[16px] leading-normal text-ink cursor-pointer active:brightness-95"
+            className="bg-peach border border-black rounded-pill h-12 px-4 py-2 text-[16px] leading-normal text-ink cursor-pointer active:brightness-95"
           >
             <SFSymbol name="plus" /> Log expense
           </button>

@@ -11,6 +11,7 @@ import SectionHeader from "../components/SectionHeader";
 import ItineraryItem from "../components/ItineraryItem";
 import IdeaCard from "../components/IdeaCard";
 import { trip, prompt, itinerary, ideas, type ItineraryEntry } from "../data/trip";
+import { addressForPlace } from "../data/places";
 import { votedCount, type Poll } from "../state";
 
 type Props = {
@@ -172,11 +173,11 @@ export default function TripHome({
               headline={prompt.headline}
               actions={
                 <>
+                  <PillButton variant="primary" onClick={() => onOpenCreate("place")}>
+                    Set a place
+                  </PillButton>
                   <PillButton variant="secondary" onClick={() => onOpenCreate("poll")}>
                     Let the group decide!
-                  </PillButton>
-                  <PillButton variant="primary" onClick={() => onOpenCreate("place")}>
-                    Add plan
                   </PillButton>
                 </>
               }
@@ -186,12 +187,14 @@ export default function TripHome({
           )}
 
           {/* Itinerary: 16px between day groups */}
-          <motion.section {...intro(1)} className="flex flex-col gap-2 w-full pt-2">
+          <motion.section {...intro(1)} className="flex flex-col gap-2 w-full pt-3">
             <SectionHeader title="Your itinerary" onOpen={showUndesignedToast} />
             <div className="flex flex-col gap-4 w-full">
               {eveningSettled && (
                 <div className="flex gap-2 items-start w-full">
-                  <div className="flex flex-col text-white shrink-0 w-[37px]">
+                  {/* Day label sticks below the floating header while its day scrolls,
+                      then hands over to the next day */}
+                  <div className="flex flex-col text-white shrink-0 w-[37px] sticky self-start top-[calc(env(safe-area-inset-top)+88px)]">
                     <p className="text-[16px] leading-normal">SAT</p>
                     <p className="text-[32px] font-medium leading-normal">26</p>
                   </div>
@@ -201,7 +204,12 @@ export default function TripHome({
                         entry={{
                           id: "winner",
                           title: winner.label,
-                          address: winner.place ?? "Lisboa, Portugal",
+                          /* subline: restaurant name, then its address */
+                          address: winner.place
+                            ? [winner.place, addressForPlace(winner.place)]
+                                .filter(Boolean)
+                                .join(", ")
+                            : "Lisboa, Portugal",
                           start: "20:00",
                           end: "22:00",
                           state: "next",
@@ -233,7 +241,7 @@ export default function TripHome({
                 </div>
               )}
               <div className="flex gap-2 items-start w-full">
-                <div className="flex flex-col text-white shrink-0 w-[37px]">
+                <div className="flex flex-col text-white shrink-0 w-[37px] sticky self-start top-[calc(env(safe-area-inset-top)+88px)]">
                   <p className="text-[16px] leading-normal">{itinerary.day}</p>
                   <p className="text-[32px] font-medium leading-normal">{itinerary.date}</p>
                 </div>
@@ -247,7 +255,7 @@ export default function TripHome({
           </motion.section>
 
           {/* Group ideas */}
-          <motion.section {...intro(2)} className="flex flex-col gap-2 w-full pt-2">
+          <motion.section {...intro(2)} className="flex flex-col gap-2 w-full pt-3">
             <SectionHeader title="Your group’s ideas" onOpen={showUndesignedToast} />
             <div className="grid grid-cols-2 gap-1 items-start">
               {ideas.map((idea) => (
@@ -262,10 +270,24 @@ export default function TripHome({
       <motion.div
         initial={animateIntro ? { opacity: 0 } : false}
         animate={{ opacity: 1, transition: { delay: 0.1, duration: 0.4, ease: "easeOut" } }}
-        className="absolute top-[env(safe-area-inset-top)] inset-x-0 z-10 flex items-center justify-between px-6 py-4"
+        className="absolute top-[env(safe-area-inset-top)] inset-x-0 z-10 flex items-center justify-between px-6 py-4 pointer-events-none"
       >
-        <IconButton symbol="chevronBackward" label="Back" onClick={onBack} />
-        <IconButton symbol="pencil" label="Edit trip" onClick={showUndesignedToast} />
+        <IconButton symbol="chevronBackward" label="Back" onClick={onBack} className="pointer-events-auto" />
+        {/* Send invite (from the user test: "add someone" was looked for up here) + edit */}
+        <div className="flex items-center gap-2">
+          <IconButton
+            symbol="paperplane"
+            label="Invite someone"
+            onClick={onAddMember}
+            className="pointer-events-auto"
+          />
+          <IconButton
+            symbol="pencil"
+            label="Edit trip"
+            onClick={showUndesignedToast}
+            className="pointer-events-auto"
+          />
+        </div>
       </motion.div>
 
       <motion.div

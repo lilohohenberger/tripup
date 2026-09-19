@@ -22,9 +22,16 @@ export async function ensureNotificationPermission(): Promise<boolean> {
   }
 }
 
-export async function notify(title: string, body: string) {
+export type NotificationAction = "open-poll";
+
+export async function notify(title: string, body: string, action?: NotificationAction) {
   if (!("Notification" in window) || Notification.permission !== "granted") return;
-  const options: NotificationOptions = { body, icon: "/icon-192.png", badge: "/icon-192.png" };
+  const options: NotificationOptions = {
+    body,
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
+    data: action ? { action } : undefined,
+  };
   try {
     const reg = await navigator.serviceWorker?.getRegistration();
     if (reg) {
@@ -35,8 +42,28 @@ export async function notify(title: string, body: string) {
     /* fall through to the window-level API */
   }
   try {
-    new Notification(title, options);
+    const n = new Notification(title, options);
+    if (action) {
+      n.onclick = () => {
+        window.focus();
+        window.dispatchEvent(new CustomEvent("tripup:notification", { detail: { action } }));
+      };
+    }
   } catch {
     /* not supported (e.g. iOS Safari tab) — silently skip */
   }
+}
+
+/** Tapping a notification deep-links into the app (SW + window-level paths). */
+export function onNotificationAction(handler: (action: NotificationAction) => void): () => void {
+  const fromSw = (e: MessageEvent) => {
+    if (e.data?.type === "notification-click" && e.data.action) handler(e.data.action);
+  };
+  const fromWindow = (e: Event) => handler((e as CustomEvent).detail.action);
+  navigator.serviceWorker?.addEventListener("message", fromSw);
+  window.addEventListener("tripup:notification", fromWindow);
+  return () => {
+    navigator.serviceWorker?.removeEventListener("message", fromSw);
+    window.removeEventListener("tripup:notification", fromWindow);
+  };
 }

@@ -20,6 +20,7 @@ type Props = {
     description: string,
     options: PollOption[],
     allowMultiple: boolean,
+    allowAddOptions: boolean,
   ) => void;
   onSavePlan: (title: string, location: string) => void;
 };
@@ -33,7 +34,9 @@ type Draft = { id: number; value: string };
 
 export default function CreateSheet({ mode, onModeChange, onClose, onStartPoll, onSavePlan }: Props) {
   const [title, setTitle] = useState("");
-  const [location, setLocation] = useState("");
+  const [place, setPlace] = useState<Place | null>(null);
+  /** "Add another option" while a place is set — submitting converts to a poll. */
+  const [placeDraft, setPlaceDraft] = useState("");
   const [options, setOptions] = useState<PollOption[]>([]);
   // Two empty option inputs on first open (Figma empty state).
   const [drafts, setDrafts] = useState<Draft[]>([
@@ -42,6 +45,7 @@ export default function CreateSheet({ mode, onModeChange, onClose, onStartPoll, 
   ]);
   const [description, setDescription] = useState("");
   const [allowMultiple, setAllowMultiple] = useState(true);
+  const [allowAddOptions, setAllowAddOptions] = useState(true);
   const [searchFor, setSearchFor] = useState<SearchTarget>(null);
   const committedDrafts = useRef<Set<number>>(new Set());
   const titleRef = useRef<HTMLInputElement>(null);
@@ -72,6 +76,19 @@ export default function CreateSheet({ mode, onModeChange, onClose, onStartPoll, 
   useEffect(() => {
     setDrafts((prev) => {
       let out = prev;
+      // never more empty inputs than needed: two while the poll is empty,
+      // exactly one once options exist (e.g. after a place converts to a poll)
+      const wantEmpty = options.length === 0 ? 2 : 1;
+      let empties = out.filter((d) => !d.value.trim()).length;
+      if (empties > wantEmpty) {
+        out = [...out];
+        for (let i = out.length - 1; i >= 0 && empties > wantEmpty; i--) {
+          if (!out[i].value.trim()) {
+            out.splice(i, 1);
+            empties--;
+          }
+        }
+      }
       while (options.length + out.length < 2) out = [...out, { id: draftSeq++, value: "" }];
       if (!out.some((d) => !d.value.trim())) out = [...out, { id: draftSeq++, value: "" }];
       return out;
@@ -90,22 +107,55 @@ export default function CreateSheet({ mode, onModeChange, onClose, onStartPoll, 
     setOptions((prev) => prev.filter((p) => p.id !== id));
   }
 
-  function pickPlace(place: Place) {
+  function pickPlace(picked: Place) {
     if (searchFor?.kind === "plan") {
-      setLocation(place.name);
+      setPlace(picked);
     } else if (searchFor?.kind === "option") {
       const id = searchFor.id;
       setOptions((prev) =>
-        prev.map((o) => (o.id === id ? { ...o, place: place.name, image: o.image ?? place.image } : o)),
+        prev.map((o) =>
+          o.id === id ? { ...o, place: picked.name, image: o.image ?? picked.image } : o,
+        ),
       );
     }
     setSearchFor(null);
   }
 
+  /**
+   * "Set a place" grows into a poll: submitting "Add another option" flips the
+   * tab to "Start a poll" — the picked place becomes option #1 (shown by its
+   * establishment name, with "@ name" underneath) and the typed text option #2.
+   */
+  function convertToPoll() {
+    const extra = placeDraft.trim();
+    if (!extra || !place) return;
+    setOptions((prev) => [
+      ...prev,
+      {
+        id: `opt-${optionSeq++}`,
+        label: place.name,
+        place: place.name,
+        image: place.image,
+        voters: [],
+      },
+      {
+        id: `opt-${optionSeq++}`,
+        label: extra,
+        place: placeForOption(extra),
+        image: imageForOption(extra),
+        voters: [],
+      },
+    ]);
+    setPlace(null);
+    setPlaceDraft("");
+    onModeChange("poll");
+  }
+
   function submit() {
     if (!canSubmit) return;
-    if (poll) onStartPoll(title.trim(), description.trim(), options, allowMultiple);
-    else onSavePlan(title.trim(), location.trim());
+    if (poll) onStartPoll(title.trim(), description.trim(), options, allowMultiple, allowAddOptions);
+    // itinerary subline: restaurant name, then its address
+    else onSavePlan(title.trim(), place ? `${place.name}, ${place.address}` : "");
   }
 
   function optionInput(d: Draft, placeholder: string) {
@@ -138,7 +188,7 @@ export default function CreateSheet({ mode, onModeChange, onClose, onStartPoll, 
       }}
     >
       <div className="flex-1 overflow-y-auto">
-        {/* Header bar (24px inset, 48px white icon button) */}
+        {/* Header bar (24px inset, 48px white icon button) — back only */}
         <div className="flex items-center px-6 py-4 pt-[max(16px,env(safe-area-inset-top))]">
           <IconButton symbol="chevronBackward" label="Back" onClick={onClose} />
         </div>
@@ -272,26 +322,52 @@ export default function CreateSheet({ mode, onModeChange, onClose, onStartPoll, 
                       d,
                       options.length + i < 2
                         ? `Option ${options.length + i + 1}`
-                        : "Add another option ...",
+                        : "Add another option...",
                     ),
                   )}
                 </div>
+              </div>
+            ) : place ? (
+              /* Picked location (Figma "Create Plan – Set Location"): name +
+                 address; adding another option converts the plan into a poll */
+              <div className="flex flex-col gap-0.5 w-full">
+                <div className="bg-surface rounded-pill h-[74px] p-2 flex items-center gap-2 w-full">
+                  <img
+                    src={place.image ?? thumbGradient}
+                    alt=""
+                    className="size-[58px] rounded-full object-cover shrink-0"
+                  />
+                  <span className="flex-1 min-w-0 flex flex-col gap-1 items-start">
+                    <span className="text-[16px] font-medium leading-normal text-ink truncate w-full">
+                      {place.name}
+                    </span>
+                    <span className="text-[16px] leading-normal text-muted truncate w-full">
+                      <SFSymbol name="location" /> {place.address}
+                    </span>
+                  </span>
+                  <button
+                    onClick={() => setPlace(null)}
+                    aria-label={`Remove ${place.name}`}
+                    className="size-10 rounded-[20px] bg-ink text-white flex items-center justify-center text-[16px] font-medium cursor-pointer shrink-0 active:bg-surface active:text-ink transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <PillInput
+                  value={placeDraft}
+                  onChange={setPlaceDraft}
+                  onSubmit={convertToPoll}
+                  placeholder="Add another option..."
+                />
               </div>
             ) : (
               <button
                 onClick={() => setSearchFor({ kind: "plan" })}
                 className="border border-muted rounded-pill h-[62px] px-4 py-2 flex items-center gap-2 w-full cursor-pointer text-left"
               >
-                <SFSymbol
-                  name="location"
-                  className={`text-[24px] leading-normal ${location ? "hidden" : "text-muted"}`}
-                />
-                <span
-                  className={`flex-1 min-w-0 truncate text-[24px] leading-normal ${
-                    location ? "text-white" : "text-muted"
-                  }`}
-                >
-                  {location || "Search for a location"}
+                <SFSymbol name="location" className="text-[24px] leading-normal text-muted" />
+                <span className="flex-1 min-w-0 truncate text-[24px] leading-normal text-muted">
+                  Search for a location
                 </span>
               </button>
             )}
@@ -303,6 +379,16 @@ export default function CreateSheet({ mode, onModeChange, onClose, onStartPoll, 
               <div className="flex items-center justify-between w-full">
                 <span className="text-[16px] leading-normal text-white">Allow multiple votes?</span>
                 <Toggle on={allowMultiple} onChange={setAllowMultiple} label="Allow multiple votes" />
+              </div>
+              <div className="flex items-center justify-between w-full">
+                <span className="text-[16px] leading-normal text-white">
+                  Allow others to add options?
+                </span>
+                <Toggle
+                  on={allowAddOptions}
+                  onChange={setAllowAddOptions}
+                  label="Allow others to add options"
+                />
               </div>
               <div className="flex items-center justify-between w-full">
                 <span className="text-[16px] leading-normal text-white">Deadline</span>
@@ -318,12 +404,13 @@ export default function CreateSheet({ mode, onModeChange, onClose, onStartPoll, 
         </div>
       </div>
 
-      {/* Footer CTA: peach, 64px, radius 100, 1px black border; muted while incomplete */}
-      <div className="absolute bottom-0 inset-x-0 px-2 pb-[max(16px,env(safe-area-inset-bottom))] pt-3 bg-gradient-to-b from-[rgba(19,19,19,0)] to-ink">
+      {/* Footer CTA: peach, 64px, radius 100, 1px black border; muted while incomplete.
+          Only the button itself catches touches — the gradient scrolls the content */}
+      <div className="absolute bottom-0 inset-x-0 px-2 pb-[max(16px,env(safe-area-inset-bottom))] pt-3 bg-gradient-to-b from-[rgba(19,19,19,0)] to-ink pointer-events-none">
         <button
           onClick={submit}
           disabled={!canSubmit}
-          className={`w-full h-16 rounded-pill border border-black px-4 py-2 text-[16px] font-medium leading-normal transition-colors ${
+          className={`w-full h-16 rounded-pill border border-black px-4 py-2 text-[16px] font-medium leading-normal transition-colors pointer-events-auto ${
             canSubmit
               ? "bg-peach text-ink cursor-pointer active:brightness-95"
               : "bg-muted text-[#2c2c2c] cursor-default"

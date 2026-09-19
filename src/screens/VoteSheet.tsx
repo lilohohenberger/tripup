@@ -55,24 +55,21 @@ export default function VoteSheet({ open, poll, onClose, onSaveVote, onAddOption
 
   return (
     <BottomSheet open={open} onClose={onClose}>
-      {/* Header: tags + title, 24px left inset */}
-      <div className="w-full pl-6 flex flex-col gap-1 justify-center">
-        <div className="flex gap-0.5 items-start">
-          <span className="border border-muted text-white text-[12px] leading-normal rounded-pill px-2 py-1">
-            {votedCount(poll)}/{poll.totalMembers} have voted
-          </span>
-          <span className="border border-muted text-white text-[12px] leading-normal rounded-pill px-2 py-1">
-            <SFSymbol name="circleFill" className="text-peach" /> {poll.minutesRemaining} mins
-            remaining
-          </span>
-        </div>
-        <p className="text-[24px] font-medium leading-normal text-white">
-          Cast your vote for
-          <br />“{poll.question}”
+      {/* Header: title + description (8px inset), tag chips underneath */}
+      <div className="w-full px-2 flex flex-col gap-1 justify-center text-white">
+        <p className="text-[24px] font-medium leading-normal">
+          Cast your vote for “{poll.question}”
         </p>
-        {poll.description && (
-          <p className="text-[16px] leading-normal text-white">{poll.description}</p>
-        )}
+        {poll.description && <p className="text-[16px] leading-normal">{poll.description}</p>}
+      </div>
+      <div className="w-full flex gap-0.5 items-start">
+        <span className="border border-muted text-white text-[12px] leading-normal rounded-pill px-2 py-1">
+          {votedCount(poll)}/{poll.totalMembers} have voted
+        </span>
+        <span className="border border-muted text-white text-[12px] leading-normal rounded-pill pl-1 pr-2 py-1 flex items-center gap-1">
+          <SFSymbol name="circleFill" className="text-peach" /> {poll.minutesRemaining} mins
+          remaining
+        </span>
       </div>
 
       <div className="w-full flex flex-col gap-1">
@@ -134,39 +131,47 @@ export default function VoteSheet({ open, poll, onClose, onSaveVote, onAddOption
                     )}
                   </span>
                 </button>
-                {/* Checkbox: empty while unchecked, white box with ink check when checked */}
+                {/* Checkbox (multiple votes) or radio (single vote), Figma "Checkbox":
+                    empty while unchecked; checked = white box with ink check /
+                    ink circle with white dot */}
                 <button
                   onClick={() => toggle(o.id)}
-                  role="checkbox"
+                  role={poll!.allowMultiple ? "checkbox" : "radio"}
                   aria-checked={isSelected}
                   aria-label={`Vote for ${o.label}`}
-                  className={`size-8 rounded-[4px] border border-white shrink-0 cursor-pointer flex items-center justify-center transition-colors ${
-                    isSelected ? "bg-surface" : "bg-ink"
+                  className={`size-8 border border-white shrink-0 cursor-pointer flex items-center justify-center transition-colors ${
+                    poll!.allowMultiple
+                      ? `rounded-[4px] ${isSelected ? "bg-surface" : "bg-ink"}`
+                      : "rounded-pill bg-ink"
                   }`}
                 >
-                  {isSelected && (
-                    <SFSymbol name="checkmark" className="text-[12px] font-medium text-ink" />
-                  )}
+                  {isSelected &&
+                    (poll!.allowMultiple ? (
+                      <SFSymbol name="checkmark" className="text-[12px] font-medium text-ink" />
+                    ) : (
+                      /* 16px type renders the ~20px dot from the Figma component */
+                      <SFSymbol name="circleFill" className="text-[16px] font-light text-white" />
+                    ))}
                 </button>
               </motion.div>
             );
           })}
         </AnimatePresence>
 
-        <div className="w-full flex flex-col gap-2 items-center">
-          {/* Add option row (Figma "Input field") */}
+        {/* Add option row (Figma "Input field") — only if the poll allows it */}
+        {poll.allowAddOptions && (
           <PillInput
             value={draft}
             onChange={setDraft}
             onSubmit={addOption}
-            placeholder="Add option"
-            icon="pencil"
+            placeholder="Add another option..."
           />
-          <p className="w-full pl-6 text-[12px] leading-normal text-muted">
-            Whatever option wins this poll will automatically be added to the itinerary.
-          </p>
-        </div>
+        )}
       </div>
+
+      <p className="w-full px-2 text-[12px] leading-normal text-muted">
+        Whatever option wins this poll will automatically be added to the itinerary.
+      </p>
 
       {/* Save vote: 64px pill, 1px black border; peach when active, #949494 while empty */}
       <button

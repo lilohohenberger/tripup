@@ -48,3 +48,22 @@ export const lastSearched: Place[] = [
     address: "Escadinhas das Portas do Mar 4, 1100-410 Lisboa, Portugal",
   },
 ];
+
+/** Demo restaurants that only exist as poll-option places (not searchable). */
+const pollPlaces: Place[] = [
+  {
+    id: "pizzeria-ramiro",
+    name: "Pizzeria Ramiro",
+    address: "Av. Almirante Reis 1H, 1150-007 Lisboa, Portugal",
+  },
+  {
+    id: "alma",
+    name: "Alma",
+    address: "R. Anchieta 15, 1200-023 Lisboa, Portugal",
+  },
+];
+
+/** Address lookup for itinerary sublines ("Name, Address"). */
+export function addressForPlace(name: string): string | undefined {
+  return [...suggestions, ...lastSearched, ...pollPlaces].find((p) => p.name === name)?.address;
+}

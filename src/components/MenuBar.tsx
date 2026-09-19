@@ -25,8 +25,10 @@ export default function MenuBar({ active = "home", onHome, onExpenses, action, o
     { key: "expenses" as const, symbol: "banknote" as const, label: "Expenses", onClick: onExpenses },
   ];
   return (
-    <div className="absolute bottom-0 inset-x-0 z-30 flex items-end justify-between px-6 pt-3 pb-[max(16px,env(safe-area-inset-bottom))] bg-gradient-to-b from-[rgba(19,19,19,0)] to-ink">
-      <div className="bg-ink border border-white rounded-pill flex items-center gap-1">
+    /* pointer-events-none: only the controls catch touches — swipes over the
+       gradient (and between the buttons) scroll the content underneath */
+    <div className="absolute bottom-0 inset-x-0 z-30 flex items-end justify-between px-6 pt-3 pb-[max(16px,env(safe-area-inset-bottom))] bg-gradient-to-b from-[rgba(19,19,19,0)] to-ink pointer-events-none">
+      <div className="bg-ink border border-white rounded-pill flex items-center gap-1 pointer-events-auto">
         {tabs.map((t) => {
           const isActive = active === t.key;
           return (
@@ -63,6 +65,7 @@ export default function MenuBar({ active = "home", onHome, onExpenses, action, o
         onClick={onAction}
         glyphSize={16}
         size={64}
+        className="pointer-events-auto"
       />
     </div>
   );

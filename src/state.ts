@@ -17,6 +17,8 @@ export type Poll = {
   description?: string;
   options: PollOption[];
   allowMultiple: boolean;
+  /** "Allow others to add options?" — hides the add-option input while voting. */
+  allowAddOptions: boolean;
   deadlineLabel: string;
   minutesRemaining: number;
   myVotes: string[];

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import TripsHome from "./screens/TripsHome";
 import TripHome from "./screens/TripHome";
@@ -10,7 +10,7 @@ import CameraView from "./screens/CameraView";
 import LogExpense from "./screens/LogExpense";
 import ExpensesTab from "./screens/ExpensesTab";
 import ToastHost from "./components/Toast";
-import { ensureNotificationPermission, notify } from "./lib/notifications";
+import { ensureNotificationPermission, notify, onNotificationAction } from "./lib/notifications";
 import avatarMe from "./assets/avatar-1.png";
 import type { ItineraryEntry } from "./data/trip";
 import { simulatedVotes, type Poll, type PollOption, type Sheet } from "./state";
@@ -27,6 +27,18 @@ export default function App() {
   const [plan, setPlan] = useState<ItineraryEntry | null>(null);
   const voteTimers = useRef<number[]>([]);
 
+  // Tapping the "New poll" (or winner) notification jumps straight to the poll.
+  useEffect(
+    () =>
+      onNotificationAction((action) => {
+        if (action === "open-poll") {
+          setView("home");
+          setSheet("vote");
+        }
+      }),
+    [],
+  );
+
   function openCreate(mode: "place" | "poll") {
     setCreateMode(mode);
     setSheet("create");
@@ -37,12 +49,14 @@ export default function App() {
     description: string,
     options: PollOption[],
     allowMultiple: boolean,
+    allowAddOptions: boolean,
   ) {
     setPoll({
       question,
       description: description || undefined,
       options,
       allowMultiple,
+      allowAddOptions,
       deadlineLabel: "1 hour before",
       minutesRemaining: 42,
       myVotes: [],
@@ -54,9 +68,9 @@ export default function App() {
     // user gesture, then announce the poll now and the winner once votes land
     ensureNotificationPermission().then((granted) => {
       if (!granted) return;
-      notify(`New poll “${question}”! 🎉`, "Vote now, voting closes in 42 mins");
+      notify(`New poll “${question}”! 🎉`, "Vote now, voting closes in 42 mins", "open-poll");
       window.setTimeout(() => {
-        notify("Your poll has a winner 🎉", "Quick, check the results!");
+        notify("Your poll has a winner 🎉", "Quick, check the results!", "open-poll");
       }, 18000);
     });
     // friends vote in over time → the vote sheet reorders live
