@@ -14,6 +14,7 @@ export type PollOption = {
 
 export type Poll = {
   question: string;
+  description?: string;
   options: PollOption[];
   allowMultiple: boolean;
   deadlineLabel: string;

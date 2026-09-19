@@ -25,7 +25,7 @@ export default function MenuBar({ active = "home", onHome, onExpenses, action, o
     { key: "expenses" as const, symbol: "banknote" as const, label: "Expenses", onClick: onExpenses },
   ];
   return (
-    <div className="absolute bottom-0 inset-x-0 z-30 flex items-start justify-between px-2 pt-3 pb-[max(16px,env(safe-area-inset-bottom))] bg-gradient-to-b from-[rgba(19,19,19,0)] to-ink">
+    <div className="absolute bottom-0 inset-x-0 z-30 flex items-end justify-between px-6 pt-3 pb-[max(16px,env(safe-area-inset-bottom))] bg-gradient-to-b from-[rgba(19,19,19,0)] to-ink">
       <div className="bg-ink border border-white rounded-pill flex items-center gap-1">
         {tabs.map((t) => {
           const isActive = active === t.key;
@@ -62,6 +62,7 @@ export default function MenuBar({ active = "home", onHome, onExpenses, action, o
         label={action === "plus" ? "Add" : "Close menu"}
         onClick={onAction}
         glyphSize={16}
+        size={64}
       />
     </div>
   );

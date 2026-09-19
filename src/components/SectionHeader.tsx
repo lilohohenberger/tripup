@@ -15,7 +15,7 @@ export default function SectionHeader({ title, onOpen }: Props) {
         className="rounded-pill text-white cursor-pointer active:opacity-80"
         aria-label={`Open ${title}`}
       >
-        <SFSymbol name="arrowUpRight" className="text-[17px]" />
+        <SFSymbol name="arrowUpRight" className="text-[24px] font-thin" />
       </button>
     </div>
   );

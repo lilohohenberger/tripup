@@ -43,7 +43,7 @@ export default function FabMenu({ open, activeTab, onClose, onAskGroup, onAddToI
             exit={{ opacity: 0, transition: exitTransition }}
             onClick={onClose}
           />
-          <div className="absolute inset-x-[9px] bottom-[88px] z-30 flex flex-col gap-1 items-center">
+          <div className="absolute inset-x-[9px] bottom-[86px] z-30 flex flex-col gap-1 items-center">
             {items.map((item) => (
               <motion.button
                 key={item.key}

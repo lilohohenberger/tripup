@@ -61,8 +61,8 @@ export default function TripsHome({ onOpenTrip }: Props) {
                 </p>
               </div>
             </motion.div>
-            {/* Status tag on the cover */}
-            <span className="absolute left-[25px] top-[21px] bg-surface border border-ink rounded-pill px-2 py-1 text-[12px] leading-normal text-ink">
+            {/* Status tag on the cover (pad 4/8/4/4, gap 4) */}
+            <span className="absolute left-[25px] top-[21px] bg-surface border border-ink rounded-pill pl-1 pr-2 py-1 flex items-center gap-1 text-[12px] leading-normal text-ink">
               <SFSymbol name="circleFill" className="font-light text-peach" /> ongoing trip
             </span>
           </button>

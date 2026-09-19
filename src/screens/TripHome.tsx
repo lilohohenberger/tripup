@@ -25,6 +25,9 @@ type Props = {
   onBack: () => void;
   /** Play the card-morph intro (only when arriving from the trips overview). */
   animateIntro?: boolean;
+  /** The winner banner can be swiped away once the poll is decided. */
+  winnerDismissed: boolean;
+  onDismissWinner: () => void;
 };
 
 export default function TripHome({
@@ -38,6 +41,8 @@ export default function TripHome({
   onOpenExpenses,
   onBack,
   animateIntro = false,
+  winnerDismissed,
+  onDismissWinner,
 }: Props) {
   const eveningSettled = poll !== null || plan !== null;
 
@@ -97,18 +102,45 @@ export default function TripHome({
           </div>
 
           {/* Attention slot: prompt → live poll banner (peach, pulsing 2px white stroke) */}
-          {(winner || poll || !plan) && (
+          {(winner ? !winnerDismissed : poll || !plan) && (
           <motion.div {...intro(0)} className="w-full">
           {winner ? (
-            <button
-              onClick={onOpenVote}
-              className="bg-peach rounded-card p-6 flex flex-col gap-0.5 w-full overflow-hidden text-left cursor-pointer"
+            /* Winner banner (Figma 2117:41436): periwinkle, swipe away to dismiss */
+            <motion.div
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.9}
+              onDragEnd={(_, info) => {
+                if (Math.abs(info.offset.x) > 120) onDismissWinner();
+              }}
+              className="bg-periwinkle rounded-card p-6 flex flex-col gap-4 w-full overflow-hidden"
             >
-              <p className="text-[16px] leading-normal text-ink">
-                <SFSymbol name="chartBar" /> Your poll has a winner 🎉
-              </p>
-              <p className="text-[24px] font-medium leading-normal text-ink">{winner.label}</p>
-            </button>
+              <div className="flex flex-col gap-0.5 w-full">
+                <div className="flex gap-0.5 items-start w-full">
+                  <p className="flex-1 min-w-0 text-[16px] leading-normal text-ink">
+                    <SFSymbol name="chartBar" /> Your poll has a winner!
+                  </p>
+                  <span className="border border-black text-ink text-[12px] leading-normal rounded-pill px-2 py-1 shrink-0">
+                    {votedCount(poll!)}/{poll!.totalMembers} have voted
+                  </span>
+                </div>
+                <p className="text-[24px] font-medium leading-normal text-ink">
+                  {winner.label}
+                  {winner.place ? ` @ ${winner.place}` : ""}
+                </p>
+                <p className="text-[16px] leading-normal text-ink">
+                  It has been automatically added to your itinerary.
+                </p>
+              </div>
+              <div className="flex items-center w-full">
+                <button
+                  onClick={onOpenVote}
+                  className="bg-surface border border-black text-ink rounded-pill h-10 px-4 py-2 flex-1 flex items-center justify-center text-[16px] leading-normal cursor-pointer active:bg-ink active:text-white transition-colors"
+                >
+                  View results
+                </button>
+              </div>
+            </motion.div>
           ) : poll ? (
             <div className="pulse-stroke bg-peach rounded-card p-6 flex flex-col gap-4 w-full overflow-hidden">
               <div className="flex flex-col gap-0.5 w-full">
@@ -121,6 +153,9 @@ export default function TripHome({
                   </span>
                 </div>
                 <p className="text-[24px] font-medium leading-normal text-ink">{poll.question}</p>
+                {poll.description && (
+                  <p className="text-[16px] leading-normal text-ink">{poll.description}</p>
+                )}
               </div>
               <div className="flex items-center w-full">
                 <button
@@ -181,8 +216,8 @@ export default function TripHome({
                           <span className="text-[16px] font-medium leading-normal truncate w-full">
                             {poll.question}
                           </span>
-                          <span className="border border-white text-white text-[12px] leading-normal rounded-pill px-2 py-1">
-                            <SFSymbol name="circleFill" className="font-light text-periwinkle" />{" "}
+                          <span className="border border-white text-white text-[12px] leading-normal rounded-pill pl-1 pr-2 py-1 flex items-center gap-1">
+                            <SFSymbol name="circleFill" className="font-light text-periwinkle" />
                             ongoing poll
                           </span>
                         </span>

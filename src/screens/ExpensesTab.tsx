@@ -75,17 +75,17 @@ export default function ExpensesTab({ onHome, onLogExpense, onOpenFab }: Props) 
 
           {tab === "expenses" ? (
             <>
-              {/* Summary card */}
-              <div className="bg-surface rounded-card px-6 py-4 flex items-center justify-between w-full">
+              {/* Summary: transparent, white text, 24px inset */}
+              <div className="px-6 flex items-center justify-between w-full">
                 <div className="flex flex-col gap-0.5">
-                  <p className="text-[12px] leading-normal text-muted">My expenses</p>
-                  <p className="text-[24px] font-medium leading-normal text-ink">
+                  <p className="text-[16px] leading-normal text-white">My expenses</p>
+                  <p className="text-[24px] font-medium leading-normal text-white">
                     {expenseSummary.mine}
                   </p>
                 </div>
                 <div className="flex flex-col gap-0.5 items-end">
-                  <p className="text-[12px] leading-normal text-muted">Total</p>
-                  <p className="text-[24px] font-medium leading-normal text-ink">
+                  <p className="text-[16px] leading-normal text-white">Total</p>
+                  <p className="text-[24px] font-medium leading-normal text-white">
                     {expenseSummary.total}
                   </p>
                 </div>
@@ -93,7 +93,7 @@ export default function ExpensesTab({ onHome, onLogExpense, onOpenFab }: Props) 
               {/* Date-grouped expenses */}
               {expenseGroups.map((g) => (
                 <div key={g.date} className="flex flex-col gap-0.5 w-full">
-                  <div className="h-[29px] flex items-center w-full">
+                  <div className="h-[29px] flex items-center px-6 w-full">
                     <p className="text-[16px] leading-normal text-white">{g.date}</p>
                   </div>
                   <div className="flex flex-col gap-1 w-full">

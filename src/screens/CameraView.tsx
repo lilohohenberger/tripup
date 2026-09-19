@@ -46,9 +46,10 @@ export default function CameraView({ onClose, onCapture }: Props) {
           <button
             onClick={onCapture}
             aria-label="Take photo"
-            className="size-20 bg-peach border border-ink rounded-pill flex items-center justify-center cursor-pointer active:brightness-95"
+            className="group size-20 bg-peach border border-ink rounded-pill flex items-center justify-center cursor-pointer"
           >
-            <span className="size-16 bg-surface border border-ink rounded-pill block" />
+            {/* Pressed state (Figma component): the inner ring turns peach */}
+            <span className="size-16 bg-surface border border-ink rounded-pill block transition-colors group-active:bg-peach" />
           </button>
           <button
             aria-label="Enter manually"

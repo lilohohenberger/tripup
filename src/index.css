@@ -17,9 +17,11 @@
   --radius-media: 36px;
   --radius-pill: 100px;
 
+  /* Prefer the real SF Pro when it's installed (exactly what Figma renders),
+     then Apple's system font on iPhones/Macs, then neutral fallbacks. */
   --font-sans:
-    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
-    "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    "SF Pro", "SF Pro Display", "SF Pro Text", -apple-system,
+    BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
 
   /* Figma sets text to the font's natural line height ("normal", ≈1.19 for
      SF Pro) — map Tailwind's leading-normal to it so spacings match. */

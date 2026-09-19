@@ -1,54 +1,44 @@
-/**
- * SF Symbols, rendered as the actual glyph code points used in the Figma file.
- * They resolve through the system SF Pro font on Apple devices (iOS/macOS),
- * which is where this prototype is meant to be demoed.
- * Icon-button glyphs are set in SF Pro Light (274) in the design.
- */
-const GLYPHS = {
-  plus: "\u{10017C}", // 􀅼
-  calendar: "\u{100249}", // 􀉉
-  arrowUpRight: "\u{10012F}", // 􀄯
-  location: "\u{1002D1}", // 􀋑
-  chevronBackward: "\u{100BF6}", // 􀯶
-  pencil: "\u{10020A}", // 􀈊
-  house: "\u{10039E}", // 􀎞
-  banknote: "\u{1013A2}", // 􁎢
-  xmark: "\u{100184}", // 􀆄
-  checkmark: "\u{100185}", // 􀆅
-  link: "\u{100263}", // 􀉣
-  plusCircle: "\u{10004C}", // 􀁌
-  chevronUpDown: "\u{10018F}", // 􀆏
-  chartBar: "\u{10043E}", // 􀐾
-  circleFill: "\u{100001}", // 􀀁
-  lightbulb: "\u{1006ED}", // 􀛭
-  euroBanknote: "\u{10221A}", // 􂈚
-  magnifyingglass: "\u{1002AB}", // 􀊫
-  clock: "\u{10042B}", // 􀐫
-  photo: "\u{1003C5}", // 􀏅
-  rectAndPencil: "\u{10020F}", // 􀈏
-  euroSign: "\u{101447}", // eurosign
-  chevronUp: "\u{100187}", // 􀆇
-  chevronDown: "\u{100188}", // 􀆈
-  trash: "\u{100211}", // 􀈑
-  handThumbsup: "\u{10027F}", // 􀉿
-  checkmarkSeal: "\u{1001FB}", // checkmark.seal.fill
-  arrowLeft: "\u{10012A}", // 􀄪
-  enterKey: "\u{100147}", // submit arrow (Input field "Active filled")
-  bell: "\u{1002D9}", // 􀋙
-} as const;
+import type { CSSProperties } from "react";
+import { LIGHT, REGULAR, THIN, SYMBOL_UPM } from "./sfSymbolPaths";
 
-export type SymbolName = keyof typeof GLYPHS;
+/**
+ * SF Symbols from the Figma designs, rendered as inline SVG outlines
+ * (extracted from the SF Pro font) so they look identical in every browser
+ * and on every OS. Sized in em like text; colored via currentColor.
+ * Icon-button glyphs use the Light (274) cut, matching the designs.
+ */
+export type SymbolName = keyof typeof REGULAR;
 
 type Props = {
   name: SymbolName;
   className?: string;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 };
 
 export default function SFSymbol({ name, className, style }: Props) {
+  const thin = className?.includes("font-thin") ?? false;
+  const light = className?.includes("font-light") ?? false;
+  const glyph =
+    (thin ? (THIN as Partial<typeof REGULAR>)[name] : undefined) ??
+    (light || thin ? LIGHT : REGULAR)[name];
+  const [x0, y0, x1, y1] = glyph.box;
+  const w = x1 - x0;
+  const h = y1 - y0;
   return (
-    <span aria-hidden className={className} style={style}>
-      {GLYPHS[name]}
-    </span>
+    <svg
+      aria-hidden
+      className={className}
+      viewBox={`${x0} ${y0} ${w} ${h}`}
+      fill="currentColor"
+      style={{
+        display: "inline-block",
+        width: `${w / SYMBOL_UPM}em`,
+        height: `${h / SYMBOL_UPM}em`,
+        verticalAlign: `${-y1 / SYMBOL_UPM}em`,
+        ...style,
+      }}
+    >
+      <path d={glyph.d} />
+    </svg>
   );
 }

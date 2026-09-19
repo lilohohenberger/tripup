@@ -25,7 +25,7 @@ export default function AvatarStack({ images, size = 40, letter, onAdd, staticAd
           alt=""
           width={size}
           height={size}
-          className="rounded-full shrink-0 -mr-4 object-cover"
+          className="rounded-full shrink-0 -mr-4 object-cover border border-ink"
           style={{ width: size, height: size }}
         />
       ))}

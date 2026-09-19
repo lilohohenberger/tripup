@@ -15,7 +15,12 @@ type Props = {
   mode: "place" | "poll";
   onModeChange: (m: "place" | "poll") => void;
   onClose: () => void;
-  onStartPoll: (question: string, options: PollOption[], allowMultiple: boolean) => void;
+  onStartPoll: (
+    question: string,
+    description: string,
+    options: PollOption[],
+    allowMultiple: boolean,
+  ) => void;
   onSavePlan: (title: string, location: string) => void;
 };
 
@@ -99,7 +104,7 @@ export default function CreateSheet({ mode, onModeChange, onClose, onStartPoll, 
 
   function submit() {
     if (!canSubmit) return;
-    if (poll) onStartPoll(title.trim(), options, allowMultiple);
+    if (poll) onStartPoll(title.trim(), description.trim(), options, allowMultiple);
     else onSavePlan(title.trim(), location.trim());
   }
 
@@ -303,7 +308,7 @@ export default function CreateSheet({ mode, onModeChange, onClose, onStartPoll, 
                 <span className="text-[16px] leading-normal text-white">Deadline</span>
                 <button
                   onClick={showUndesignedToast}
-                  className="bg-surface text-ink rounded-pill h-10 px-4 py-2 flex items-center gap-1 text-[16px] font-medium leading-normal cursor-pointer"
+                  className="border border-white text-white rounded-pill h-10 px-4 py-2 flex items-center gap-2 text-[16px] font-medium leading-normal cursor-pointer"
                 >
                   1 hour before <SFSymbol name="chevronUpDown" className="font-light" />
                 </button>

@@ -23,6 +23,7 @@ export default function App() {
   const [createMode, setCreateMode] = useState<"place" | "poll">("poll");
   const [renJoined, setRenJoined] = useState(false);
   const [poll, setPoll] = useState<Poll | null>(null);
+  const [winnerDismissed, setWinnerDismissed] = useState(false);
   const [plan, setPlan] = useState<ItineraryEntry | null>(null);
   const voteTimers = useRef<number[]>([]);
 
@@ -31,9 +32,15 @@ export default function App() {
     setSheet("create");
   }
 
-  function startPoll(question: string, options: PollOption[], allowMultiple: boolean) {
+  function startPoll(
+    question: string,
+    description: string,
+    options: PollOption[],
+    allowMultiple: boolean,
+  ) {
     setPoll({
       question,
+      description: description || undefined,
       options,
       allowMultiple,
       deadlineLabel: "1 hour before",
@@ -41,6 +48,7 @@ export default function App() {
       myVotes: [],
       totalMembers: renJoined ? 7 : 6,
     });
+    setWinnerDismissed(false);
     setSheet(null);
     // notifications (the two Figma banners): ask for permission from this
     // user gesture, then announce the poll now and the winner once votes land
@@ -116,6 +124,8 @@ export default function App() {
           onOpenVote={() => setSheet("vote")}
           onOpenExpenses={() => setView("expenses")}
           onBack={() => setView("trips")}
+          winnerDismissed={winnerDismissed}
+          onDismissWinner={() => setWinnerDismissed(true)}
         />
       ) : (
         <ExpensesTab

@@ -70,6 +70,9 @@ export default function VoteSheet({ open, poll, onClose, onSaveVote, onAddOption
           Cast your vote for
           <br />“{poll.question}”
         </p>
+        {poll.description && (
+          <p className="text-[16px] leading-normal text-white">{poll.description}</p>
+        )}
       </div>
 
       <div className="w-full flex flex-col gap-1">
