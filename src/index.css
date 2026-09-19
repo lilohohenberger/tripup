@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+/*
+  TripUp design tokens — extracted from the hi-fi Figma screen.
+  Colors intentionally live here as plain values (no Figma variables yet).
+*/
+@theme {
+  --color-ink: #131313;
+  --color-surface: #ffffff;
+  --color-peach: #ffbb96;
+  --color-periwinkle: #bbcaf1;
+  --color-glass-label: #1a1a1a;
+  --color-muted: #949494;
+  --color-danger: #bf1433;
+
+  --radius-card: 40px;
+  --radius-media: 36px;
+  --radius-pill: 100px;
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  /* Figma sets text to the font's natural line height ("normal", ≈1.19 for
+     SF Pro) — map Tailwind's leading-normal to it so spacings match. */
+  --leading-normal: normal;
+
+  --shadow-media-inset: inset 0 4px 40px rgba(47, 47, 47, 0.25);
+  --shadow-glass:
+    1.25px 0 0 -0.75px #d0d0d0, -1.25px 0 0 -0.75px #d0d0d0,
+    0 0 0 0.5px #e8e8e8, 0 8px 15px rgba(0, 0, 0, 0.02);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  color: var(--color-surface);
+}
+
+/* Phones: the app fills the whole viewport. Desktop: phone-sized stage. */
+.stage {
+  height: 100dvh;
+  margin-inline: auto;
+  width: 100%;
+  position: relative;
+  background: var(--color-ink);
+  overflow: hidden;
+}
+
+/* Ongoing poll: the 2px white stroke (from Figma) breathes slowly. */
+.pulse-stroke {
+  border: 2px solid rgba(255, 255, 255, 1);
+  animation: pulse-stroke 2.6s ease-in-out infinite;
+}
+
+@keyframes pulse-stroke {
+  0%,
+  100% {
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
+  50% {
+    border-color: rgba(255, 255, 255, 1);
+    box-shadow: 0 0 14px 0 rgba(255, 255, 255, 0.25);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-stroke {
+    animation: none;
+    border-color: rgba(255, 255, 255, 1);
+  }
+}
+
+@media (min-width: 500px) {
+  body {
+    background: #0a0a0a;
+  }
+  .stage {
+    max-width: 393px;
+    height: min(852px, 100dvh - 48px);
+    margin-block: 24px;
+    border-radius: 40px;
+    outline: 1px solid #2a2a2a;
+  }
+}
