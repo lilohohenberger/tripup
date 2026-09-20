@@ -4,6 +4,7 @@ import SFSymbol from "../components/SFSymbol";
 import IconButton from "../components/IconButton";
 import PillInput from "../components/PillInput";
 import Toggle from "../components/Toggle";
+import SlidePill from "../components/SlidePill";
 import LocationSearch from "./LocationSearch";
 import { showUndesignedToast } from "../components/Toast";
 import { enterTransition, exitTransition } from "../lib/motion";
@@ -26,6 +27,8 @@ type Props = {
 };
 
 type SearchTarget = null | { kind: "plan" } | { kind: "option"; id: string };
+
+const segments = ["place", "poll", "idea"] as const;
 
 let optionSeq = 0;
 let draftSeq = 10;
@@ -187,7 +190,8 @@ export default function CreateSheet({ mode, onModeChange, onClose, onStartPoll, 
         }
       }}
     >
-      <div className="flex-1 overflow-y-auto">
+      {/* scroll-smooth: focusing an input glides instead of jumping */}
+      <div className="flex-1 overflow-y-auto scroll-smooth">
         {/* Header bar (24px inset, 48px white icon button) — back only */}
         <div className="flex items-center px-6 py-4 pt-[max(16px,env(safe-area-inset-top))]">
           <IconButton symbol="chevronBackward" label="Back" onClick={onClose} />
@@ -214,40 +218,47 @@ export default function CreateSheet({ mode, onModeChange, onClose, onStartPoll, 
               />
             </div>
 
-            {/* Date row: white, radius 40, 1px black border, 24×16 padding, 24 Medium */}
+            {/* Date row: transparent, radius 40, 1px white border, 24×16 padding, 24 Medium white */}
             <button
               onClick={showUndesignedToast}
-              className="bg-surface border border-black rounded-card px-6 py-4 flex items-center justify-between text-ink cursor-pointer"
+              className="border border-white rounded-card px-6 py-4 flex items-center justify-between text-white cursor-pointer"
             >
               <span className="text-[24px] font-medium leading-normal">Sat, Jun 26</span>
               <span className="text-[24px] font-medium leading-normal">20:00 — 22:00</span>
             </button>
 
             {/* Segmented control: ink pill with white border; the active white
-                pill slides over to the tapped segment */}
+                pill slides (or drags) over. "Add idea" isn't designed yet. */}
             <div className="bg-ink border border-white rounded-pill flex">
-              {(["place", "poll"] as const).map((m) => (
-                <button
-                  key={m}
-                  onClick={() => onModeChange(m)}
-                  className="relative flex-1 rounded-pill p-4 text-[16px] leading-normal cursor-pointer"
-                >
-                  {mode === m && (
-                    <motion.span
-                      layoutId="segment-active"
-                      className="absolute inset-0 bg-surface rounded-pill"
-                      transition={{ type: "spring", stiffness: 450, damping: 32 }}
-                    />
-                  )}
-                  <span
-                    className={`relative transition-colors duration-300 ${
-                      mode === m ? "text-ink font-medium" : "text-white"
-                    }`}
+              {(["place", "poll", "idea"] as const).map((m, i) => {
+                const isActive = mode === m;
+                const select = (key: (typeof segments)[number]) =>
+                  key === "idea" ? showUndesignedToast() : onModeChange(key);
+                return (
+                  <button
+                    key={m}
+                    onClick={() => select(m)}
+                    className="relative flex-1 rounded-pill p-4 text-[16px] leading-normal cursor-pointer"
                   >
-                    {m === "place" ? "Set a place" : "Start a poll"}
-                  </span>
-                </button>
-              ))}
+                    {isActive && (
+                      <SlidePill
+                        layoutId="segment-active"
+                        index={i}
+                        count={3}
+                        onSelect={(t) => select(segments[t])}
+                        transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                      />
+                    )}
+                    <span
+                      className={`relative transition-colors duration-300 pointer-events-none ${
+                        isActive ? "text-ink font-medium" : "text-white"
+                      }`}
+                    >
+                      {m === "place" ? "Set a place" : m === "poll" ? "Start a poll" : "Add idea"}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -410,7 +421,7 @@ export default function CreateSheet({ mode, onModeChange, onClose, onStartPoll, 
         <button
           onClick={submit}
           disabled={!canSubmit}
-          className={`w-full h-16 rounded-pill border border-black px-4 py-2 text-[16px] font-medium leading-normal transition-colors pointer-events-auto ${
+          className={`w-full h-16 rounded-pill border border-black px-4 py-2 text-[24px] font-medium leading-normal transition-colors pointer-events-auto ${
             canSubmit
               ? "bg-peach text-ink cursor-pointer active:brightness-95"
               : "bg-muted text-[#2c2c2c] cursor-default"

@@ -29,13 +29,10 @@ export default function TripsHome({ onOpenTrip }: Props) {
       <div className="h-full overflow-y-auto overscroll-contain">
         {/* Content: 8px gutter, 16px stack gap */}
         <div className="flex flex-col gap-4 px-2 pt-[calc(16px+env(safe-area-inset-top))] pb-10">
-          {/* Header: title 40 Medium + plus & bell buttons */}
+          {/* Header: title 40 Medium + bell button */}
           <div className="flex items-center justify-between py-2 w-full">
             <p className="text-[40px] font-medium leading-normal text-white">Your trips</p>
-            <div className="flex items-center gap-2">
-              <IconButton symbol="plus" label="New trip" glyphSize={16} onClick={showUndesignedToast} />
-              <IconButton symbol="bell" label="Notifications" glyphSize={16} onClick={showUndesignedToast} />
-            </div>
+            <IconButton symbol="bell" label="Notifications" glyphSize={16} onClick={showUndesignedToast} />
           </div>
 
           {/* Featured trip: cover + overlapping white info card (1px black border) */}
@@ -96,6 +93,18 @@ export default function TripsHome({ onOpenTrip }: Props) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Floating plus (Figma "Menu Bar" without tabs): new trip isn't designed yet */}
+      <div className="absolute bottom-0 inset-x-0 z-30 flex items-end justify-end px-6 pt-3 pb-[max(16px,env(safe-area-inset-bottom))] bg-gradient-to-b from-[rgba(19,19,19,0)] to-ink pointer-events-none">
+        <IconButton
+          symbol="plus"
+          label="New trip"
+          onClick={showUndesignedToast}
+          glyphSize={16}
+          size={64}
+          className="pointer-events-auto"
+        />
       </div>
     </div>
   );

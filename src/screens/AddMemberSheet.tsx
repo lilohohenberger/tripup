@@ -43,10 +43,10 @@ export default function AddMemberSheet({ open, onClose, onAddByName }: Props) {
         {/* Share row: white card, radius 40, 1px black border, 24×16 padding, 24 Medium */}
         <button
           onClick={handleShare}
-          className="bg-surface border border-black rounded-card px-6 py-4 flex items-start gap-2 w-full cursor-pointer text-ink active:bg-ink active:text-white transition-colors"
+          className="bg-surface border border-black rounded-card px-6 py-4 flex items-center justify-center gap-2 w-full cursor-pointer text-ink active:bg-ink active:text-white transition-colors"
         >
           <SFSymbol name="link" className="text-[24px] leading-normal" />
-          <span className="flex-1 min-w-0 text-left text-[24px] font-medium leading-normal">
+          <span className="min-w-0 truncate text-[24px] font-medium leading-normal">
             {shareState === "copied" ? "Link copied!" : "Share invite Link"}
           </span>
         </button>

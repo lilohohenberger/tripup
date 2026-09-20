@@ -17,9 +17,9 @@ import { votedCount, type Poll } from "../state";
 type Props = {
   poll: Poll | null;
   plan: ItineraryEntry | null;
-  renJoined: boolean;
+  /** First letter of a member added by name (letter avatar in the stack). */
+  memberLetter?: string;
   onAddMember: () => void;
-  onOpenFab: () => void;
   onOpenCreate: (mode: "place" | "poll") => void;
   onOpenVote: () => void;
   onOpenExpenses: () => void;
@@ -34,9 +34,8 @@ type Props = {
 export default function TripHome({
   poll,
   plan,
-  renJoined,
+  memberLetter,
   onAddMember,
-  onOpenFab,
   onOpenCreate,
   onOpenVote,
   onOpenExpenses,
@@ -90,7 +89,7 @@ export default function TripHome({
             >
               <AvatarStack
                 images={trip.members}
-                letter={renJoined ? "R" : undefined}
+                letter={memberLetter}
                 onAdd={onAddMember}
               />
               <div className="flex flex-col gap-0.5 text-ink">
@@ -135,7 +134,7 @@ export default function TripHome({
               </div>
               <div className="flex items-center w-full">
                 <button
-                  onClick={showUndesignedToast}
+                  onClick={onOpenVote}
                   className="bg-surface border border-black text-ink rounded-pill h-10 px-4 py-2 flex-1 flex items-center justify-center text-[16px] leading-normal cursor-pointer active:bg-ink active:text-white transition-colors"
                 >
                   View results
@@ -273,18 +272,18 @@ export default function TripHome({
         className="absolute top-[env(safe-area-inset-top)] inset-x-0 z-10 flex items-center justify-between px-6 py-4 pointer-events-none"
       >
         <IconButton symbol="chevronBackward" label="Back" onClick={onBack} className="pointer-events-auto" />
-        {/* Send invite (from the user test: "add someone" was looked for up here) + edit */}
+        {/* Edit + add person (swapped, with the person.badge.plus icon) */}
         <div className="flex items-center gap-2">
-          <IconButton
-            symbol="paperplane"
-            label="Invite someone"
-            onClick={onAddMember}
-            className="pointer-events-auto"
-          />
           <IconButton
             symbol="pencil"
             label="Edit trip"
             onClick={showUndesignedToast}
+            className="pointer-events-auto"
+          />
+          <IconButton
+            symbol="personBadgePlus"
+            label="Add someone"
+            onClick={onAddMember}
             className="pointer-events-auto"
           />
         </div>
@@ -294,7 +293,7 @@ export default function TripHome({
         initial={animateIntro ? { opacity: 0 } : false}
         animate={{ opacity: 1, transition: { delay: 0.25, duration: 0.4, ease: "easeOut" } }}
       >
-        <MenuBar active="home" onExpenses={onOpenExpenses} action="plus" onAction={onOpenFab} />
+        <MenuBar active="home" onExpenses={onOpenExpenses} onAdd={() => onOpenCreate("place")} />
       </motion.div>
     </div>
   );

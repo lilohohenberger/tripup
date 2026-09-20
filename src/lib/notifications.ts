@@ -30,6 +30,8 @@ export async function notify(title: string, body: string, action?: NotificationA
     body,
     icon: "/icon-192.png",
     badge: "/icon-192.png",
+    // one tag: the winner notification replaces the "New poll" one
+    tag: "tripup-poll",
     data: action ? { action } : undefined,
   };
   try {
@@ -51,6 +53,17 @@ export async function notify(title: string, body: string, action?: NotificationA
     }
   } catch {
     /* not supported (e.g. iOS Safari tab) — silently skip */
+  }
+}
+
+/** Retire delivered notifications (e.g. once the poll is decided). */
+export async function closeAppNotifications() {
+  try {
+    const reg = await navigator.serviceWorker?.getRegistration();
+    const shown = await reg?.getNotifications();
+    shown?.forEach((n) => n.close());
+  } catch {
+    /* nothing to close */
   }
 }
 

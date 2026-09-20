@@ -1,31 +1,49 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import TripsHome from "./screens/TripsHome";
+import { SplashLogo, SplashHint, isIosBrowserTab } from "./screens/Splash";
 import TripHome from "./screens/TripHome";
 import AddMemberSheet from "./screens/AddMemberSheet";
-import FabMenu from "./screens/FabMenu";
 import CreateSheet from "./screens/CreateSheet";
 import VoteSheet from "./screens/VoteSheet";
 import CameraView from "./screens/CameraView";
 import LogExpense from "./screens/LogExpense";
 import ExpensesTab from "./screens/ExpensesTab";
-import ToastHost from "./components/Toast";
-import { ensureNotificationPermission, notify, onNotificationAction } from "./lib/notifications";
+import ToastHost, { showMemberAddedToast } from "./components/Toast";
+import {
+  closeAppNotifications,
+  ensureNotificationPermission,
+  notify,
+  onNotificationAction,
+} from "./lib/notifications";
 import avatarMe from "./assets/avatar-1.png";
 import type { ItineraryEntry } from "./data/trip";
 import { simulatedVotes, type Poll, type PollOption, type Sheet } from "./state";
 
 export default function App() {
   const [view, setView] = useState<"trips" | "home" | "expenses">("trips");
+  /** Splash on launch; iOS browser tabs get the install-hint afterwards. */
+  const [splash, setSplash] = useState<"logo" | "hint" | null>("logo");
   // the immersive intro only plays when entering the trip from the trips overview
   const enteredFromTrips = useRef(false);
   const [sheet, setSheet] = useState<Sheet>(null);
   const [createMode, setCreateMode] = useState<"place" | "poll">("poll");
-  const [renJoined, setRenJoined] = useState(false);
+  /** Name typed into "Add by name" — letter avatar + added-to-group banner. */
+  const [addedMember, setAddedMember] = useState<string | null>(null);
+  /** Where the expense screen was opened from (back returns there). */
+  const expenseFrom = useRef<"camera" | "list">("camera");
   const [poll, setPoll] = useState<Poll | null>(null);
   const [winnerDismissed, setWinnerDismissed] = useState(false);
   const [plan, setPlan] = useState<ItineraryEntry | null>(null);
   const voteTimers = useRef<number[]>([]);
+
+  useEffect(() => {
+    const t = window.setTimeout(
+      () => setSplash(isIosBrowserTab() ? "hint" : null),
+      1600,
+    );
+    return () => window.clearTimeout(t);
+  }, []);
 
   // Tapping the "New poll" (or winner) notification jumps straight to the poll.
   useEffect(
@@ -60,7 +78,7 @@ export default function App() {
       deadlineLabel: "1 hour before",
       minutesRemaining: 42,
       myVotes: [],
-      totalMembers: renJoined ? 7 : 6,
+      totalMembers: addedMember ? 7 : 6,
     });
     setWinnerDismissed(false);
     setSheet(null);
@@ -91,6 +109,8 @@ export default function App() {
   }
 
   function saveVote(optionIds: string[]) {
+    // the poll is decided — retire the "New poll" notification
+    closeAppNotifications();
     setPoll((p) => {
       if (!p) return p;
       const options = p.options.map((o) =>
@@ -131,9 +151,8 @@ export default function App() {
           animateIntro={enteredFromTrips.current}
           poll={poll}
           plan={plan}
-          renJoined={renJoined}
+          memberLetter={addedMember ? addedMember[0].toUpperCase() : undefined}
           onAddMember={() => setSheet("addMember")}
-          onOpenFab={() => setSheet("fab")}
           onOpenCreate={openCreate}
           onOpenVote={() => setSheet("vote")}
           onOpenExpenses={() => setView("expenses")}
@@ -148,21 +167,19 @@ export default function App() {
             setView("home");
           }}
           onLogExpense={() => setSheet("camera")}
-          onOpenFab={() => setSheet("fab")}
+          onOpenExpense={() => {
+            expenseFrom.current = "list";
+            setSheet("expense");
+          }}
         />
       )}
       <AddMemberSheet
         open={sheet === "addMember"}
         onClose={() => setSheet(null)}
-        onAddByName={() => setRenJoined(true)}
-      />
-      <FabMenu
-        open={sheet === "fab"}
-        activeTab={view === "expenses" ? "expenses" : "home"}
-        onClose={() => setSheet(null)}
-        onAskGroup={() => openCreate("poll")}
-        onAddToItinerary={() => openCreate("place")}
-        onAddExpense={() => setSheet("camera")}
+        onAddByName={(name) => {
+          setAddedMember(name);
+          showMemberAddedToast(name);
+        }}
       />
       <AnimatePresence>
         {sheet === "create" && (
@@ -177,12 +194,21 @@ export default function App() {
       </AnimatePresence>
       <AnimatePresence>
         {sheet === "camera" && (
-          <CameraView onClose={() => setSheet(null)} onCapture={() => setSheet("expense")} />
+          <CameraView
+            onClose={() => setSheet(null)}
+            onCapture={() => {
+              expenseFrom.current = "camera";
+              setSheet("expense");
+            }}
+          />
         )}
       </AnimatePresence>
       <AnimatePresence>
         {sheet === "expense" && (
-          <LogExpense onClose={() => setSheet("camera")} onSave={() => setSheet(null)} />
+          <LogExpense
+            onClose={() => setSheet(expenseFrom.current === "camera" ? "camera" : null)}
+            onSave={() => setSheet(null)}
+          />
         )}
       </AnimatePresence>
       <VoteSheet
@@ -193,6 +219,13 @@ export default function App() {
         onAddOption={addPollOption}
       />
       <ToastHost />
+      <AnimatePresence>
+        {splash === "logo" ? (
+          <SplashLogo key="splash-logo" />
+        ) : splash === "hint" ? (
+          <SplashHint key="splash-hint" onContinue={() => setSplash(null)} />
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,17 +1,17 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import SFSymbol from "../components/SFSymbol";
 import IconButton from "../components/IconButton";
 import MenuBar from "../components/MenuBar";
 import BottomSheet from "../components/BottomSheet";
-import { showUndesignedToast } from "../components/Toast";
+import SlidePill from "../components/SlidePill";
 import paypal from "../assets/paypal.png";
 import { expenseSummary, expenseGroups, balances } from "../data/balances";
 
 type Props = {
   onHome: () => void;
   onLogExpense: () => void;
-  onOpenFab: () => void;
+  /** Tapping an existing expense opens the add/edit expense screen. */
+  onOpenExpense: () => void;
 };
 
 type Tab = "expenses" | "balances";
@@ -21,7 +21,7 @@ type SettleSheet = null | "settle" | "done";
  * Expenses / Balances tab screens (Figma "Expenses – List", "Balances –
  * Overview", "Settle Up", "Squared Up Confirmation", "All Settled").
  */
-export default function ExpensesTab({ onHome, onLogExpense, onOpenFab }: Props) {
+export default function ExpensesTab({ onHome, onLogExpense, onOpenExpense }: Props) {
   const [tab, setTab] = useState<Tab>("expenses");
   const [sheet, setSheet] = useState<SettleSheet>(null);
   const [settled, setSettled] = useState(false);
@@ -29,15 +29,9 @@ export default function ExpensesTab({ onHome, onLogExpense, onOpenFab }: Props) 
   return (
     <div className="h-full relative">
       <div className="h-full overflow-y-auto overscroll-contain">
-        {/* Header bar: back + "+ Log expense" (24px inset) */}
-        <div className="flex items-center justify-between px-6 py-4 pt-[max(16px,env(safe-area-inset-top))]">
+        {/* Header bar: back only (the menu-bar plus logs expenses) */}
+        <div className="flex items-center px-6 py-4 pt-[max(16px,env(safe-area-inset-top))]">
           <IconButton symbol="chevronBackward" label="Back" onClick={onHome} />
-          <button
-            onClick={onLogExpense}
-            className="bg-peach border border-black rounded-pill h-12 px-4 py-2 text-[16px] leading-normal text-ink cursor-pointer active:brightness-95"
-          >
-            <SFSymbol name="plus" /> Log expense
-          </button>
         </div>
 
         {/* Content: 8px gutter, 16px between sections */}
@@ -49,21 +43,23 @@ export default function ExpensesTab({ onHome, onLogExpense, onOpenFab }: Props) 
                 { key: "expenses", label: "Expenses" },
                 { key: "balances", label: "Balances" },
               ] as const
-            ).map((t) => (
+            ).map((t, i) => (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
                 className="relative flex-1 rounded-pill p-4 text-[16px] leading-normal cursor-pointer flex items-center justify-center"
               >
                 {tab === t.key && (
-                  <motion.span
+                  <SlidePill
                     layoutId="expenses-tab-active"
-                    className="absolute inset-0 bg-surface rounded-pill"
+                    index={i}
+                    count={2}
+                    onSelect={(target) => setTab(target === 0 ? "expenses" : "balances")}
                     transition={{ type: "spring", stiffness: 450, damping: 32 }}
                   />
                 )}
                 <span
-                  className={`relative transition-colors duration-300 ${
+                  className={`relative transition-colors duration-300 pointer-events-none ${
                     tab === t.key ? "text-ink font-medium" : "text-white"
                   }`}
                 >
@@ -100,7 +96,7 @@ export default function ExpensesTab({ onHome, onLogExpense, onOpenFab }: Props) 
                     {g.entries.map((e) => (
                       <button
                         key={e.title}
-                        onClick={showUndesignedToast}
+                        onClick={onOpenExpense}
                         className="bg-periwinkle rounded-card pl-2 pr-4 py-2 flex items-center gap-2 w-full cursor-pointer text-left"
                       >
                         <span className="size-12 bg-ink rounded-pill flex items-center justify-center shrink-0 text-[20px]">
@@ -192,7 +188,7 @@ export default function ExpensesTab({ onHome, onLogExpense, onOpenFab }: Props) 
         </div>
       </div>
 
-      <MenuBar active="expenses" onHome={onHome} action="plus" onAction={onOpenFab} />
+      <MenuBar active="expenses" onHome={onHome} onAdd={onLogExpense} />
 
       {/* Settle up sheet */}
       <BottomSheet open={sheet === "settle"} onClose={() => setSheet(null)}>
@@ -205,10 +201,10 @@ export default function ExpensesTab({ onHome, onLogExpense, onOpenFab }: Props) 
               setSettled(true);
               setSheet("done");
             }}
-            className="bg-surface border border-black rounded-card px-6 py-4 flex items-start gap-2 w-full cursor-pointer text-ink active:bg-ink active:text-white transition-colors"
+            className="bg-surface border border-black rounded-card px-6 py-4 flex items-center justify-center gap-2 w-full cursor-pointer text-ink active:bg-ink active:text-white transition-colors"
           >
             <img src={paypal} alt="" className="h-[29px] w-auto shrink-0" />
-            <span className="flex-1 min-w-0 text-left text-[24px] font-medium leading-normal">
+            <span className="min-w-0 truncate text-[24px] font-medium leading-normal">
               Settle with PayPal
             </span>
           </button>
@@ -217,10 +213,10 @@ export default function ExpensesTab({ onHome, onLogExpense, onOpenFab }: Props) 
               setSettled(true);
               setSheet("done");
             }}
-            className="border border-white rounded-card px-6 py-4 flex items-start gap-2 w-full cursor-pointer text-white active:bg-surface active:text-ink transition-colors"
+            className="border border-white rounded-card px-6 py-4 flex items-center justify-center gap-2 w-full cursor-pointer text-white active:bg-surface active:text-ink transition-colors"
           >
             <SFSymbol name="handThumbsup" className="text-[24px] font-light leading-normal" />
-            <span className="flex-1 min-w-0 text-left text-[24px] font-medium leading-normal">
+            <span className="min-w-0 truncate text-[24px] font-medium leading-normal">
               Mark as paid
             </span>
           </button>
@@ -239,10 +235,10 @@ export default function ExpensesTab({ onHome, onLogExpense, onOpenFab }: Props) 
         <div className="w-full flex flex-col">
           <button
             onClick={() => setSheet(null)}
-            className="bg-surface border border-black rounded-card px-6 py-4 flex items-start gap-2 w-full cursor-pointer text-ink active:bg-ink active:text-white transition-colors"
+            className="bg-surface border border-black rounded-card px-6 py-4 flex items-center justify-center gap-2 w-full cursor-pointer text-ink active:bg-ink active:text-white transition-colors"
           >
             <SFSymbol name="arrowLeft" className="text-[24px] font-light leading-normal" />
-            <span className="flex-1 min-w-0 text-left text-[24px] font-medium leading-normal">
+            <span className="min-w-0 truncate text-[24px] font-medium leading-normal">
               Back to overview
             </span>
           </button>

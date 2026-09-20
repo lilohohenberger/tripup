@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import SFSymbol from "../components/SFSymbol";
 import IconButton from "../components/IconButton";
+import SlidePill from "../components/SlidePill";
 import { showUndesignedToast } from "../components/Toast";
 import receipt from "../assets/receipt.png";
 import { expenseMembers, initialExpenseItems, type ExpenseItem } from "../data/expense";
@@ -12,7 +13,7 @@ type Props = {
   onSave: () => void;
 };
 
-type SplitMode = "equal" | "custom" | "parts";
+type SplitMode = "items" | "participants";
 
 /**
  * Log-expense screen (Figma "Log expense"): scanned receipt hero with title
@@ -23,7 +24,7 @@ export default function LogExpense({ onClose, onSave }: Props) {
   const [items, setItems] = useState<ExpenseItem[]>(initialExpenseItems);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [swiped, setSwiped] = useState<string | null>(null);
-  const [split, setSplit] = useState<SplitMode>("equal");
+  const [split, setSplit] = useState<SplitMode>("items");
   const [amount, setAmount] = useState("123,50");
   const dragging = useRef(false);
 
@@ -46,8 +47,6 @@ export default function LogExpense({ onClose, onSave }: Props) {
           : it,
       ),
     );
-    // an uneven share is a custom split
-    setSplit("custom");
   }
 
   function shareLabel(item: ExpenseItem) {
@@ -75,7 +74,7 @@ export default function LogExpense({ onClose, onSave }: Props) {
             <div className="relative h-[162px] rounded-card overflow-hidden w-full mb-[-48px]">
               <img src={receipt} alt="" className="absolute inset-0 size-full object-cover" />
             </div>
-            <div className="bg-surface rounded-card h-24 p-4 flex items-center gap-4 relative w-full overflow-hidden">
+            <div className="bg-surface border border-ink rounded-card h-24 p-4 flex items-center gap-4 relative w-full overflow-hidden">
               <span className="size-16 bg-ink border border-ink rounded-pill flex items-center justify-center shrink-0 text-[24px]">
                 🍕
               </span>
@@ -85,20 +84,16 @@ export default function LogExpense({ onClose, onSave }: Props) {
             </div>
           </div>
 
-          {/* Amount row: currency picker + amount field */}
+          {/* Amount row: currency picker + amount field (inverted: white on ink) */}
           <div className="flex items-center gap-2 w-full">
             <button
               onClick={showUndesignedToast}
-              className="bg-surface border border-muted rounded-pill h-[62px] px-4 py-2 flex items-center shrink-0 cursor-pointer text-[24px] leading-normal"
+              className="border border-white rounded-pill h-[62px] px-4 py-2 flex items-center shrink-0 cursor-pointer text-[24px] leading-normal text-white"
             >
-              <span className="text-ink">
-                <SFSymbol name="euroSign" className="font-medium" />{" "}
-              </span>
-              <span className="text-muted">
-                <SFSymbol name="chevronUpDown" className="font-light" />
-              </span>
+              <SFSymbol name="euroSign" className="font-medium" />{" "}
+              <SFSymbol name="chevronUpDown" className="font-light" />
             </button>
-            <div className="border border-muted rounded-pill h-[62px] px-4 py-2 flex items-center flex-1 min-w-0">
+            <div className="border border-white rounded-pill h-[62px] px-4 py-2 flex items-center flex-1 min-w-0">
               <input
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
@@ -109,61 +104,67 @@ export default function LogExpense({ onClose, onSave }: Props) {
             </div>
           </div>
 
-          {/* Paid by / When + split segmented */}
-          <div className="flex flex-col gap-2 w-full">
-            <div className="flex items-center gap-1 w-full">
-              <div className="flex flex-col gap-1 w-[148px] shrink-0">
-                <p className="pl-4 text-[16px] leading-normal text-white">Paid By</p>
-                <button
-                  onClick={showUndesignedToast}
-                  className="bg-surface border border-muted rounded-pill h-[62px] px-4 py-2 flex items-center cursor-pointer text-[24px] leading-normal whitespace-nowrap"
-                >
-                  <span className="text-ink font-medium">Ari (you) </span>
-                  <span className="text-muted">
-                    <SFSymbol name="chevronUpDown" className="font-light" />
-                  </span>
-                </button>
-              </div>
-              <div className="flex flex-col gap-1 flex-1 min-w-0">
-                <p className="pl-4 text-[16px] leading-normal text-white">When?</p>
-                <button
-                  onClick={showUndesignedToast}
-                  className="bg-surface border border-muted rounded-pill h-[62px] px-4 py-2 flex items-center cursor-pointer text-[24px] font-medium leading-normal text-ink"
-                >
-                  27.06.2026
-                </button>
-              </div>
+          {/* Paid by / When (inverted fields: white text, white border) */}
+          <div className="flex items-center gap-1 w-full">
+            <div className="flex flex-col gap-1 w-[148px] shrink-0">
+              <p className="pl-4 text-[16px] leading-normal text-white">Paid By</p>
+              <button
+                onClick={showUndesignedToast}
+                className="border border-white rounded-pill h-[62px] px-4 py-2 flex items-center cursor-pointer text-[24px] leading-normal whitespace-nowrap text-white"
+              >
+                <span className="font-medium">Ari (you) </span>
+                <SFSymbol name="chevronUpDown" className="font-light" />
+              </button>
             </div>
-            {/* Split segmented: active white pill slides over */}
+            <div className="flex flex-col gap-1 flex-1 min-w-0">
+              <p className="pl-4 text-[16px] leading-normal text-white">When?</p>
+              <button
+                onClick={showUndesignedToast}
+                className="border border-white rounded-pill h-[62px] px-4 py-2 flex items-center cursor-pointer text-[24px] font-medium leading-normal text-white"
+              >
+                27.06.2026
+              </button>
+            </div>
+          </div>
+
+          {/* Amounts: "by items" or "by participants" (not designed yet) */}
+          <div className="flex flex-col gap-1 w-full">
+            <p className="pl-4 text-[16px] leading-normal text-white">Amounts</p>
             <div className="bg-ink border border-white rounded-pill h-[53px] flex w-full">
               {(
                 [
-                  { key: "equal", label: "Split equally" },
-                  { key: "custom", label: "Custom" },
-                  { key: "parts", label: "By parts" },
+                  { key: "items", label: "By items" },
+                  { key: "participants", label: "By participants" },
                 ] as const
-              ).map((s) => (
-                <button
-                  key={s.key}
-                  onClick={() => setSplit(s.key)}
-                  className="relative flex-1 rounded-pill p-4 text-[16px] leading-normal cursor-pointer flex items-center justify-center"
-                >
-                  {split === s.key && (
-                    <motion.span
-                      layoutId="split-active"
-                      className="absolute inset-0 bg-surface rounded-pill"
-                      transition={{ type: "spring", stiffness: 450, damping: 32 }}
-                    />
-                  )}
-                  <span
-                    className={`relative transition-colors duration-300 whitespace-nowrap ${
-                      split === s.key ? "text-ink font-medium" : "text-white"
-                    }`}
+              ).map((s, i) => {
+                const isActive = split === s.key;
+                const select = (key: SplitMode) =>
+                  key === "participants" ? showUndesignedToast() : setSplit(key);
+                return (
+                  <button
+                    key={s.key}
+                    onClick={() => select(s.key)}
+                    className="relative flex-1 rounded-pill p-4 text-[16px] leading-normal cursor-pointer flex items-center justify-center"
                   >
-                    {s.label}
-                  </span>
-                </button>
-              ))}
+                    {isActive && (
+                      <SlidePill
+                        layoutId="split-active"
+                        index={i}
+                        count={2}
+                        onSelect={(t) => select(t === 0 ? "items" : "participants")}
+                        transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                      />
+                    )}
+                    <span
+                      className={`relative transition-colors duration-300 whitespace-nowrap pointer-events-none ${
+                        isActive ? "text-ink font-medium" : "text-white"
+                      }`}
+                    >
+                      {s.label}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -323,7 +324,7 @@ export default function LogExpense({ onClose, onSave }: Props) {
           {/* Save: peach, 64px, radius 100, 1px black border */}
           <button
             onClick={onSave}
-            className="w-full h-16 rounded-pill bg-peach border border-black px-4 py-2 text-[16px] font-medium leading-normal text-ink cursor-pointer active:brightness-95"
+            className="w-full h-16 rounded-pill bg-peach border border-black px-4 py-2 text-[24px] font-medium leading-normal text-ink cursor-pointer active:brightness-95"
           >
             Save expense
           </button>

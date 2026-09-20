@@ -27,7 +27,7 @@ export type Poll = {
   decided?: boolean;
 };
 
-export type Sheet = null | "addMember" | "fab" | "create" | "vote" | "camera" | "expense";
+export type Sheet = null | "addMember" | "create" | "vote" | "camera" | "expense";
 
 /** Preset imagery so the demo poll matches the hi-fi design. */
 export function imageForOption(label: string): string | undefined {

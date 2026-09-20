@@ -32,6 +32,8 @@ export default function VoteSheet({ open, poll, onClose, onSaveVote, onAddOption
   }, [poll, selected]);
 
   if (!poll) return null;
+  /** Decided polls open in their results state (Figma "Results for ..."). */
+  const results = !!poll.decided;
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -58,7 +60,7 @@ export default function VoteSheet({ open, poll, onClose, onSaveVote, onAddOption
       {/* Header: title + description (8px inset), tag chips underneath */}
       <div className="w-full px-2 flex flex-col gap-1 justify-center text-white">
         <p className="text-[24px] font-medium leading-normal">
-          Cast your vote for “{poll.question}”
+          {results ? <>Results for “{poll.question}”</> : <>Cast your vote for “{poll.question}”</>}
         </p>
         {poll.description && <p className="text-[16px] leading-normal">{poll.description}</p>}
       </div>
@@ -67,8 +69,16 @@ export default function VoteSheet({ open, poll, onClose, onSaveVote, onAddOption
           {votedCount(poll)}/{poll.totalMembers} have voted
         </span>
         <span className="border border-muted text-white text-[12px] leading-normal rounded-pill pl-1 pr-2 py-1 flex items-center gap-1">
-          <SFSymbol name="circleFill" className="text-peach" /> {poll.minutesRemaining} mins
-          remaining
+          {results ? (
+            <>
+              <SFSymbol name="circleFill" className="text-periwinkle" /> Poll closed
+            </>
+          ) : (
+            <>
+              <SFSymbol name="circleFill" className="text-peach" /> {poll.minutesRemaining} mins
+              remaining
+            </>
+          )}
         </span>
       </div>
 
@@ -85,8 +95,10 @@ export default function VoteSheet({ open, poll, onClose, onSaveVote, onAddOption
               >
                 {/* Option pill: white, radius 100, 8px padding, 55px thumbnail */}
                 <button
-                  onClick={() => toggle(o.id)}
-                  className="bg-surface rounded-pill p-2 flex items-center gap-2 flex-1 min-w-0 cursor-pointer active:brightness-95"
+                  onClick={results ? undefined : () => toggle(o.id)}
+                  className={`bg-surface rounded-pill p-2 flex items-center gap-2 flex-1 min-w-0 ${
+                    results ? "cursor-default" : "cursor-pointer active:brightness-95"
+                  }`}
                 >
                   <img
                     src={o.image ?? thumbGradient}
@@ -134,6 +146,7 @@ export default function VoteSheet({ open, poll, onClose, onSaveVote, onAddOption
                 {/* Checkbox (multiple votes) or radio (single vote), Figma "Checkbox":
                     empty while unchecked; checked = white box with ink check /
                     ink circle with white dot */}
+                {!results && (
                 <button
                   onClick={() => toggle(o.id)}
                   role={poll!.allowMultiple ? "checkbox" : "radio"}
@@ -153,13 +166,14 @@ export default function VoteSheet({ open, poll, onClose, onSaveVote, onAddOption
                       <SFSymbol name="circleFill" className="text-[16px] font-light text-white" />
                     ))}
                 </button>
+                )}
               </motion.div>
             );
           })}
         </AnimatePresence>
 
-        {/* Add option row (Figma "Input field") — only if the poll allows it */}
-        {poll.allowAddOptions && (
+        {/* Add option row (Figma "Input field") — only while voting is open */}
+        {!results && poll.allowAddOptions && (
           <PillInput
             value={draft}
             onChange={setDraft}
@@ -169,25 +183,40 @@ export default function VoteSheet({ open, poll, onClose, onSaveVote, onAddOption
         )}
       </div>
 
-      <p className="w-full px-2 text-[12px] leading-normal text-muted">
-        Whatever option wins this poll will automatically be added to the itinerary.
-      </p>
+      {!results && (
+        <p className="w-full px-2 text-[12px] leading-normal text-muted">
+          Whatever option wins this poll will automatically be added to the itinerary.
+        </p>
+      )}
 
       {/* Save vote: 64px pill, 1px black border; peach when active, #949494 while empty */}
-      <button
-        onClick={() => {
-          onSaveVote(selected);
-          setSelected([]);
-        }}
-        disabled={selected.length === 0}
-        className={`w-full h-16 rounded-pill border border-black px-4 py-2 text-[16px] font-medium leading-normal transition-colors ${
-          selected.length > 0
-            ? "bg-peach text-ink cursor-pointer active:brightness-95"
-            : "bg-muted text-[#2c2c2c] cursor-default"
-        }`}
-      >
-        Save vote
-      </button>
+      {results ? (
+        /* secondary action on the results sheet (Figma 2141:45125) */
+        <button
+          onClick={onClose}
+          className="border border-white rounded-card px-6 py-4 flex items-center justify-center gap-2 w-full cursor-pointer text-white active:bg-surface active:text-ink transition-colors"
+        >
+          <SFSymbol name="arrowLeft" className="text-[24px] font-light leading-normal" />
+          <span className="min-w-0 truncate text-[24px] font-medium leading-normal">
+            Back to overview
+          </span>
+        </button>
+      ) : (
+        <button
+          onClick={() => {
+            onSaveVote(selected);
+            setSelected([]);
+          }}
+          disabled={selected.length === 0}
+          className={`w-full h-16 rounded-pill border border-black px-4 py-2 text-[24px] font-medium leading-normal transition-colors ${
+            selected.length > 0
+              ? "bg-peach text-ink cursor-pointer active:brightness-95"
+              : "bg-muted text-[#2c2c2c] cursor-default"
+          }`}
+        >
+          Save vote
+        </button>
+      )}
     </BottomSheet>
   );
 }

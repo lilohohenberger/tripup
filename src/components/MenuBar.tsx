@@ -1,25 +1,22 @@
-import { motion } from "framer-motion";
 import SFSymbol from "./SFSymbol";
 import IconButton from "./IconButton";
-import type { SymbolName } from "./SFSymbol";
+import SlidePill from "./SlidePill";
 
 type Props = {
   /** Which tab is highlighted. */
   active?: "home" | "expenses";
   onHome?: () => void;
   onExpenses?: () => void;
-  /** Right-hand 48px action button: plus on the dashboard, xmark while the FAB menu is open. */
-  action: Extract<SymbolName, "plus" | "xmark">;
-  onAction?: () => void;
-  /** The FAB overlay renders its own copy without the shared slide element. */
-  slide?: boolean;
+  /** The plus button — creates directly (a plan on home, an expense on expenses). */
+  onAdd?: () => void;
 };
 
 /**
  * Bottom menu bar (Figma "Menu Bar"): ink pill with white border holding the
- * tab buttons; the active white pill slides over like the segmented tabs.
+ * tab buttons; the active white pill slides over — or can be dragged across
+ * like a toggle.
  */
-export default function MenuBar({ active = "home", onHome, onExpenses, action, onAction, slide = true }: Props) {
+export default function MenuBar({ active = "home", onHome, onExpenses, onAdd }: Props) {
   const tabs = [
     { key: "home" as const, symbol: "house" as const, label: "Home", onClick: onHome },
     { key: "expenses" as const, symbol: "banknote" as const, label: "Expenses", onClick: onExpenses },
@@ -29,7 +26,7 @@ export default function MenuBar({ active = "home", onHome, onExpenses, action, o
        gradient (and between the buttons) scroll the content underneath */
     <div className="absolute bottom-0 inset-x-0 z-30 flex items-end justify-between px-6 pt-3 pb-[max(16px,env(safe-area-inset-bottom))] bg-gradient-to-b from-[rgba(19,19,19,0)] to-ink pointer-events-none">
       <div className="bg-ink border border-white rounded-pill flex items-center gap-1 pointer-events-auto">
-        {tabs.map((t) => {
+        {tabs.map((t, i) => {
           const isActive = active === t.key;
           return (
             <button
@@ -39,19 +36,18 @@ export default function MenuBar({ active = "home", onHome, onExpenses, action, o
               onClick={t.onClick}
               className="relative w-[68px] h-12 rounded-pill flex items-center justify-center cursor-pointer"
             >
-              {isActive &&
-                (slide ? (
-                  <motion.span
-                    layoutId="menu-active"
-                    className="absolute inset-0 bg-surface rounded-pill"
-                    transition={{ type: "spring", stiffness: 450, damping: 32 }}
-                  />
-                ) : (
-                  <span className="absolute inset-0 bg-surface rounded-pill" />
-                ))}
+              {isActive && (
+                <SlidePill
+                  layoutId="menu-active"
+                  index={i}
+                  count={tabs.length}
+                  onSelect={(target) => tabs[target].onClick?.()}
+                  transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                />
+              )}
               <SFSymbol
                 name={t.symbol}
-                className={`relative font-light text-[16px] leading-none transition-colors duration-300 ${
+                className={`relative font-light text-[16px] leading-none transition-colors duration-300 pointer-events-none ${
                   isActive ? "text-ink" : "text-white"
                 }`}
               />
@@ -60,9 +56,9 @@ export default function MenuBar({ active = "home", onHome, onExpenses, action, o
         })}
       </div>
       <IconButton
-        symbol={action}
-        label={action === "plus" ? "Add" : "Close menu"}
-        onClick={onAction}
+        symbol="plus"
+        label="Add"
+        onClick={onAdd}
         glyphSize={16}
         size={64}
         className="pointer-events-auto"
