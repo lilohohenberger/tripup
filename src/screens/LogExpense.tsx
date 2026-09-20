@@ -170,9 +170,6 @@ export default function LogExpense({ onClose, onSave }: Props) {
 
           {/* Items */}
           <div className="flex flex-col gap-2 w-full">
-            <p className="pl-4 text-[16px] leading-normal text-white">
-              Amounts by Items <SFSymbol name="chevronUpDown" className="text-muted" />
-            </p>
             <div className="flex flex-col gap-1 w-full">
               <AnimatePresence initial={false}>
               {items.map((item) => {
